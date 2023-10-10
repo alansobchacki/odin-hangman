@@ -2,7 +2,9 @@
 class Hangman
   def initialize
     @hints = []
+    @guessed_letters = []
     @failed_tries = 0
+    @game_over = false
     @random_word = ''
     @hangman_rope = ' '
     @hangman_head = ' '
@@ -12,9 +14,9 @@ class Hangman
 
   def pick_game_difficulty
     puts "  Let's play a game of Hangman! Pick '1' for an easy ride, '2' for a normal game, and '3' for a challenge!"
-    @choice = gets.chomp
+    @difficulty_choice = gets.chomp
 
-    case @choice
+    case @difficulty_choice
     when '1' then generate_word_and_hints(4, 6)
     when '2' then generate_word_and_hints(7, 10)
     when '3' then generate_word_and_hints(11, 15)
@@ -27,6 +29,7 @@ class Hangman
   def generate_word_and_hints(min_length, max_length)
     @random_word = File.readlines('10000_words.txt').sample.chomp until @random_word.length.between?(min_length, max_length)
     @hints.push('_') until @hints.length == @random_word.length
+    p @random_word
   end
 
   def game_running
@@ -38,12 +41,11 @@ class Hangman
     end
 
     @failed_tries += 1 unless @random_word.include?(@guess) == true
-
     update_failed_tries
-    game_running
-  end
 
-  # The methods below will only handle interface updates
+    game_over if @hints.join == @random_word
+    game_running unless @game_over == true
+  end
 
   def update_hints(index, letter)
     @hints.delete_at(index)
@@ -58,7 +60,31 @@ class Hangman
     when 4 then @hangman_upper_body = '/| '
     when 5 then @hangman_upper_body = '/|\\'
     when 6 then @hangman_lower_body = '/  '
-    when 7 then @hangman_lower_body = '/ \\'
+    when 7
+      @hangman_lower_body = '/ \\'
+      game_over
+    end
+  end
+
+  def game_over
+    @game_over = true
+    update_display
+    if @failed_tries == 7
+      puts 'You just lost the game. Try again? Y/N'
+    else
+      puts 'You won the game! Play again? Y/N'
+    end
+  end
+
+  def replay?
+    @replay = gets.chomp.upcase
+    if @replay == 'Y'
+      # function to reset everything
+    elsif @replay == 'N'
+      puts '  Thank you for playing "Hangman"!'
+    else
+      puts '   Invalid input. Please choose between "Y" or "N".'
+      replay?
     end
   end
 
@@ -76,7 +102,7 @@ class Hangman
     puts ''
     puts @hints.join(' ')
     puts ''
-    puts '  Guess a letter!'
+    puts '  Guess a letter!' unless @game_over == true
   end
 end
 
