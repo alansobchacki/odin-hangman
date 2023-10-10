@@ -12,6 +12,18 @@ class Hangman
     @hangman_lower_body = '   '
   end
 
+  def reset_initial_values
+    @hints = []
+    @guessed_letters = []
+    @failed_tries = 0
+    @game_over = false
+    @random_word = ''
+    @hangman_rope = ' '
+    @hangman_head = ' '
+    @hangman_upper_body = '   '
+    @hangman_lower_body = '   '
+  end
+
   def pick_game_difficulty
     puts "  Let's play a game of Hangman! Pick '1' for an easy ride, '2' for a normal game, and '3' for a challenge!"
     @difficulty_choice = gets.chomp
@@ -24,12 +36,12 @@ class Hangman
       puts '  Please pick a valid option.'
       pick_game_difficulty
     end
+    game_running
   end
 
   def generate_word_and_hints(min_length, max_length)
     @random_word = File.readlines('10000_words.txt').sample.chomp until @random_word.length.between?(min_length, max_length)
     @hints.push('_') until @hints.length == @random_word.length
-    p @random_word
   end
 
   def game_running
@@ -74,12 +86,14 @@ class Hangman
     else
       puts 'You won the game! Play again? Y/N'
     end
+    replay?
   end
 
   def replay?
     @replay = gets.chomp.upcase
     if @replay == 'Y'
-      # function to reset everything
+      reset_initial_values
+      pick_game_difficulty
     elsif @replay == 'N'
       puts '  Thank you for playing "Hangman"!'
     else
@@ -107,6 +121,4 @@ class Hangman
 end
 
 playing_hangman = Hangman.new
-playing_hangman.hangman_drawing
 playing_hangman.pick_game_difficulty
-playing_hangman.game_running
