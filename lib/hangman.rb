@@ -1,4 +1,10 @@
-
+# To-do list
+# [] Allow users to save/load their game
+# [] Show users which letters they've already entered to avoid sending the same letters
+# [] Look for a cleaner way to reset our initial variables
+# [] Improve code readability
+ 
+# Everything is set up in a single class because reasons
 class Hangman
   def initialize
     @hints = []
@@ -46,7 +52,8 @@ class Hangman
 
   def game_running
     update_display
-    @guess = gets.chomp
+    @guess = gets.chomp.downcase
+    game_running unless @guess.length == 1 && /^[a-z]$/.match?(@guess)
 
     @random_word.each_char.with_index do |char, index|
       update_hints(index, @guess) unless @guess != char
