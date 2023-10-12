@@ -92,7 +92,7 @@ class Game
     @game_over = true
     update_display
     if @failed_tries == 7
-      puts 'You just lost the game. Try again? Y/N'
+      puts "You just lost the game. The word was '#{@random_word}'. Try again? Y/N"
     else
       puts 'You won the game! Play again? Y/N'
     end
@@ -102,7 +102,7 @@ class Game
   def replay?
     @replay = gets.chomp.upcase
     if @replay == 'Y'
-      pick_game_difficulty
+      new_match
     elsif @replay == 'N'
       puts '  Thank you for playing "Hangman"!'
     else
@@ -131,8 +131,12 @@ class Game
   end
 end
 
-game_settings = GameSetup.new
-game_settings.pick_game_difficulty
+def new_match
+  game_settings = GameSetup.new
+  game_settings.pick_game_difficulty
 
-newgame = Game.new(game_settings.random_word, game_settings.hints)
-newgame.game_running
+  newgame = Game.new(game_settings.random_word, game_settings.hints)
+  newgame.game_running
+end
+
+new_match
