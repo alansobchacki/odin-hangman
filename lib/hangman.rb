@@ -1,33 +1,13 @@
 # To-do list
 # [] Allow users to save/load their game
-# [] Show users which letters they've already entered to avoid sending the same letters
-# [] Look for a cleaner way to reset our initial variables
-# [] Improve code readability
- 
-# Everything is set up in a single class because reasons
-class Hangman
+
+# Handles the basic setup rules of our game
+class GameSetup
+  attr_accessor :random_word, :hints
+
   def initialize
     @hints = []
-    @guessed_letters = []
-    @failed_tries = 0
-    @game_over = false
     @random_word = ''
-    @hangman_rope = ' '
-    @hangman_head = ' '
-    @hangman_upper_body = '   '
-    @hangman_lower_body = '   '
-  end
-
-  def reset_initial_values
-    @hints = []
-    @guessed_letters = []
-    @failed_tries = 0
-    @game_over = false
-    @random_word = ''
-    @hangman_rope = ' '
-    @hangman_head = ' '
-    @hangman_upper_body = '   '
-    @hangman_lower_body = '   '
   end
 
   def pick_game_difficulty
@@ -35,25 +15,44 @@ class Hangman
     @difficulty_choice = gets.chomp
 
     case @difficulty_choice
-    when '1' then generate_word_and_hints(4, 6)
-    when '2' then generate_word_and_hints(7, 10)
-    when '3' then generate_word_and_hints(11, 15)
+    when '1' then generate_random_word(4, 6)
+    when '2' then generate_random_word(7, 10)
+    when '3' then generate_random_word(11, 15)
     else
       puts '  Please pick a valid option.'
       pick_game_difficulty
     end
-    game_running
+    generate_hints
   end
 
-  def generate_word_and_hints(min_length, max_length)
+  def generate_random_word(min_length, max_length)
     @random_word = File.readlines('10000_words.txt').sample.chomp until @random_word.length.between?(min_length, max_length)
+  end
+
+  def generate_hints
     @hints.push('_') until @hints.length == @random_word.length
+  end
+end
+
+# Everything that happens after a game is setup goes here
+class Game
+  def initialize(random_word, hints)
+    @random_word = random_word
+    @hints = hints
+    @guesses = []
+    @failed_tries = 0
+    @game_over = false
+    @hangman_rope = ' '
+    @hangman_head = ' '
+    @hangman_upper_body = '   '
+    @hangman_lower_body = '   '
   end
 
   def game_running
     update_display
     @guess = gets.chomp.downcase
     game_running unless @guess.length == 1 && /^[a-z]$/.match?(@guess)
+    update_guesses
 
     @random_word.each_char.with_index do |char, index|
       update_hints(index, @guess) unless @guess != char
@@ -64,6 +63,10 @@ class Hangman
 
     game_over if @hints.join == @random_word
     game_running unless @game_over == true
+  end
+
+  def update_guesses
+    @guesses.push(@guess) unless @guesses.include?(@guess)
   end
 
   def update_hints(index, letter)
@@ -99,7 +102,6 @@ class Hangman
   def replay?
     @replay = gets.chomp.upcase
     if @replay == 'Y'
-      reset_initial_values
       pick_game_difficulty
     elsif @replay == 'N'
       puts '  Thank you for playing "Hangman"!'
@@ -109,6 +111,7 @@ class Hangman
     end
   end
 
+  # The methods below are mostly about updating visual graphics to the player
   def hangman_drawing
     puts '       ______'
     puts "       #{@hangman_rope}    |"
@@ -123,9 +126,13 @@ class Hangman
     puts ''
     puts @hints.join(' ')
     puts ''
+    puts "  You've already tried these letters: #{@guesses}" unless @game_over == true || @guesses.empty?
     puts '  Guess a letter!' unless @game_over == true
   end
 end
 
-playing_hangman = Hangman.new
-playing_hangman.pick_game_difficulty
+game_settings = GameSetup.new
+game_settings.pick_game_difficulty
+
+newgame = Game.new(game_settings.random_word, game_settings.hints)
+newgame.game_running
